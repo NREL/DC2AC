@@ -1,20 +1,23 @@
 # --------------------------------------------------------------------------------------------------
 # DC-AC Tool functions
 # Bin Wang
-# 3/21/2022
+# 4/28/2022
 #
 # Reference:
 # Wang, Bin, and Jin Tan. 2022. DC-AC Tool: Fully Automating the Acquisition of AC Power Flow
 # Solution. Golden, CO: National Renewable Energy Laboratory. NREL/TP-6A40-80100.
 # https://www.nrel.gov/docs/fy22osti/80100.pdf 
 # --------------------------------------------------------------------------------------------------
+from __future__ import with_statement
+from contextlib import contextmanager
 
 
 import glob, os, sys
 import numpy
-import silence
 import csv
 import xlrd
+
+
 
 # --------------------------------------------------------------------------------------------------
 # power flow data class
@@ -99,7 +102,7 @@ class PFData():
 # input: option - choose solver, n_flag1_max - maximum number of runs for power flow
 # output: solved_flag, 0 - solved, 1 - reach maximum iteration number, 2 - blow up
 def ifsolved(psspy, option, n_flag1_max):
-    with silence.silence():
+    with silence():
         if option==1:
             psspy.fnsl([0, 0, 0, 1, 1, 0, 0, 0])
         else:
@@ -110,7 +113,7 @@ def ifsolved(psspy, option, n_flag1_max):
         n_flag1 = 0
         while solved_flag == 1:
             n_flag1 = n_flag1 + 1
-            with silence.silence():
+            with silence():
                 if option == 1:
                     psspy.nsol([0, 0, 0, 1, 1, 0, 0])   # fast decouple with "Do not flat start"
                 else:
@@ -132,7 +135,7 @@ def ifsolved(psspy, option, n_flag1_max):
 
 def addgen(psspy, pfd, allsubs):
     # add generators to specified subs, specify P and V
-    with silence.silence():
+    with silence():
         ad_pq_busid = []
         ad_pv_busid = []
         for ii in allsubs:
@@ -186,7 +189,7 @@ def svbltcheck(psspy, pfd, step1_basecase, flag_raw_sav):
         new_load_Mvar = (100 - dec_perc) / 100 * pfd.load_Mvar_total
         new_gen_MW = (100 - dec_perc) / 100 * pfd.gen_MW_total
 
-        with silence.silence():
+        with silence():
             if flag_raw_sav == 1:
                 psspy.read(0, step1_basecase)
             elif flag_raw_sav == 2:
@@ -212,7 +215,7 @@ def approach_target_loading(psspy, pfd, dec_perc, step2_tempcase):
     inc_step_MW_min = float(1)
 
     pfdt = PFData()
-    with silence.silence():
+    with silence():
         psspy.read(0, step2_tempcase)
     pfdt.getdata(psspy)
 
@@ -227,7 +230,7 @@ def approach_target_loading(psspy, pfd, dec_perc, step2_tempcase):
 
     while (inc_cur < inc_target) & (inc_step_MW > inc_step_MW_min):
         inc_cur = inc_cur + inc_step
-        with silence.silence():
+        with silence():
             psspy.read(0, step2_tempcase)
 
 
@@ -237,7 +240,7 @@ def approach_target_loading(psspy, pfd, dec_perc, step2_tempcase):
         load_MW = load_MW_pre * inc_cur
         # load_Mvar = load_Mvar_pre * inc_cur
 
-        with silence.silence():
+        with silence():
             for i in range(len(pfdt.gen_bus)):
                 busi = pfdt.bus_num.index(pfdt.gen_bus[i])
                 if pfdt.bus_type[busi] == 3 and pfdt.gen_status[i] == 1:
@@ -250,7 +253,7 @@ def approach_target_loading(psspy, pfd, dec_perc, step2_tempcase):
 
 
         if solved_flag == 0:
-            with silence.silence():
+            with silence():
                 psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, step2_tempcase)
                 # pfdt.getdata(psspy)
                 # inc_cur_G = pfdt.gen_MW_total/load_MW_pre
@@ -273,7 +276,7 @@ def remove_added_gens(psspy, ad_pv_genbus, ad_pq_genbus, ad_pq_genQ_abs, step3_t
     # remove added gen on original pv bus
     n_ct_pv = 0
     for ii in ad_pv_genbus:
-        with silence.silence():
+        with silence():
             psspy.read(0, step3_tempcase)
             psspy.purgmac(ii, r"""ad""")
 
@@ -281,7 +284,7 @@ def remove_added_gens(psspy, ad_pv_genbus, ad_pq_genbus, ad_pq_genQ_abs, step3_t
 
         if solved_flag == 0:
             n_ct_pv = n_ct_pv + 1
-            with silence.silence():
+            with silence():
                 psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, step3_tempcase)
         if solved_flag == 2:
             break
@@ -298,7 +301,7 @@ def remove_added_gens(psspy, ad_pv_genbus, ad_pq_genbus, ad_pq_genQ_abs, step3_t
         if n_cur + n_step > n_max:
             n_step = n_max - n_cur
 
-        with silence.silence():
+        with silence():
             psspy.read(0, step3_tempcase)
             for nn in range(n_cur, n_cur + n_step, 1):
                 ii = idx[nn]
@@ -312,7 +315,7 @@ def remove_added_gens(psspy, ad_pv_genbus, ad_pq_genbus, ad_pq_genQ_abs, step3_t
         if solved_flag == 0:
             n_ct_pq = n_ct_pq + n_step
             n_cur = n_cur + n_step
-            with silence.silence():
+            with silence():
                 psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, step3_tempcase)
         else:
             if n_step >= 1:
@@ -414,7 +417,7 @@ def saveRaw(psspy, rawfile, option, option2 = 0, perc = 0):
         outfile = outfile.replace("input", "dc2ac_output\\solved_Vadju")
         outfile = outfile[0:len(outfile) - 4] + """_step4_unlimQ.raw"""
 
-    with silence.silence():
+    with silence():
         psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, outfile)
 
     return outfile
@@ -441,7 +444,7 @@ def getAddedGen(pfdt, ad_pq_busid, ad_pv_busid):
 
 
 def getQofAddedGen(psspy, step3_tempcase, ad_pq_busid, ad_pv_busid):
-    with silence.silence():
+    with silence():
         psspy.read(0, step3_tempcase)
         psspy.fnsl([0, 0, 0, 1, 1, 0, -1, 0])
     temp_genid = psspy.amachchar(-1, 4, 'ID')[1][0]
@@ -550,7 +553,7 @@ def remove_geni_adjVi(psspy, rawfile, ad_genbus, ad_genQ, pfdt, step4_tempcase, 
     Vset_remote = []
     for busi, Qi in zip(ad_genbus, ad_genQ):
         Q = []
-        with silence.silence():
+        with silence():
             psspy.read(0, step4_tempcase)
             psspy.plant_chng_4(busi, 0, [psspy._i, psspy._i], [1.00, psspy._f])
             flag = ifsolved(psspy, 1, 5)
@@ -674,7 +677,7 @@ def getnearpv(busi, pfdt, n_layer = 1):
 
 def remove_geni_adjVj(busi, busj, psspy, pfdt, step5_tempcase, vseti):
     Q = []
-    with silence.silence():
+    with silence():
         psspy.read(0, step5_tempcase)
         psspy.plant_chng_4(busi, 0, [psspy._i, psspy._i], [vseti, psspy._f])
         psspy.plant_chng_4(busj, 0, [psspy._i, psspy._i], [1.0, psspy._f])
@@ -720,3 +723,20 @@ def remove_geni_adjVj(busi, busj, psspy, pfdt, step5_tempcase, vseti):
 
     return vset, flag
 
+
+# The following function was prepared based on this reference: Whit. 2012. “Silencing PSSE Output,” Python for Power Systems. [Online] http://www.whit.com.au/blog/2012/03/silencing-psse-output/ 
+@contextmanager
+def silence(file_object=None):
+    """
+    Discard stdout (i.e. write to null device) or
+    optionally write to given file-like object.
+    """
+    if file_object is None:
+        file_object = open(os.devnull, 'w')
+
+    old_stdout = sys.stdout
+    try:
+        sys.stdout = file_object
+        yield
+    finally:
+        sys.stdout = old_stdout

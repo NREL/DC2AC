@@ -1,7 +1,7 @@
 # --------------------------------------------------------------------------------------------------
 # DC-AC Tool: main function
 # Bin Wang
-# 3/21/2022
+# 4/28/2022
 #
 # Reference:
 # Wang, Bin, and Jin Tan. 2022. DC-AC Tool: Fully Automating the Acquisition of AC Power Flow
@@ -17,10 +17,10 @@ os_path_PSSE = r'C:\Program Files (x86)\PTI\PSSE34\PSSBIN'
 os.environ['PATH'] += ';' + os_path_PSSE
 os.environ['PATH'] += ';' + sys_path_PSSE
 
+os.environ['PATH'] += ';' + r'C:\Python27'
 
 import psse34
 import psspy
-import silence
 import natsort
 from DC_AC_Library_BW import *
 
@@ -50,7 +50,7 @@ def main():
 
 
     # path to pre-specified substation bus numbers
-    subs_filename = r"""subs_bus.xlsx"""
+    subs_filename = r"""casefile\input\subs_bus.xlsx"""
 
     # paths to output files
     outpath = r"""casefile\dc2ac_output\\"""
@@ -88,7 +88,7 @@ def main():
     for pffile, i in zip(pffiles, range(len(pffiles))):
         print(pffile)
 
-        with silence.silence():
+        with silence():
             psspy.psseinit(50000)
             if flag_raw_sav == 1:
                 psspy.read(0, pffile)
@@ -124,7 +124,7 @@ def main():
         # if 1st power flow not converging, check solvability
         if solved_flag_1st !=0:  ## IF-2, no
             print('First power flow (with added generators) cannot converge! Investigating solvability...')
-            with silence.silence():
+            with silence():
                 if flag_raw_sav == 1:
                     psspy.read(0, pffile)
                 elif flag_raw_sav == 2:
@@ -150,7 +150,7 @@ def main():
                 solved_flag_1st = 0
 
                 # recover loading
-                with silence.silence():
+                with silence():
                     psspy.read(0, step2_tempcase)  # saveRaw outputs .raw files only
                     pfdt.getdata(psspy)
 
@@ -167,7 +167,7 @@ def main():
                     print('Should have solved the case.\n')
                     continue
                 else:
-                    with silence.silence():
+                    with silence():
                         psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, step2_tempcase)
 
                 # recover dispatch
@@ -178,7 +178,7 @@ def main():
                         if pfd.gen_status[i]!=1 or abs(pfd.bus_type[busi])!=2:
                             continue
 
-                        with silence.silence():
+                        with silence():
                             psspy.read(0, step2_tempcase)
                             psspy.machine_chng_2(pfd.gen_bus[i], pfd.gen_id[i], [psspy._i, psspy._i, psspy._i, psspy._i, psspy._i, psspy._i],
                                              [pfd.gen_MW[i], psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f, psspy._f])
@@ -196,7 +196,7 @@ def main():
             else:
                 inc_cur = inc_cur - inc_step
                 perc = str(inc_cur / inc_target * 100)[0:7]
-                with silence.silence():
+                with silence():
                     psspy.read(0, step2_tempcase)
 
                 saveRaw(psspy, pffile, 3, 2.1, perc)
