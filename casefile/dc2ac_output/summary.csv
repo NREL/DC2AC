@@ -1,0 +1,19 @@
+ 
+Case names,Solved directly,Solved with Q support,Solved with Vset adjusted,Unsolved/Solved with reduced Pload
+WECC240_v03_Mod_NewMVA_month_10_day_31_hour_16.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_10_day_31_hour_18.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_10_day_31_hour_4.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_10_day_8_hour_21.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_11_day_2_hour_15.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_12_day_11_hour_11.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_12_day_8_hour_19.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_2_day_8_hour_10.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_2_day_8_hour_9.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_3_day_6_hour_8.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_4_day_1_hour_8.raw,0,0,1,0
+WECC240_v03_Mod_NewMVA_month_4_day_4_hour_4.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_4_day_6_hour_1.raw,0,0,1,0
+WECC240_v03_Mod_NewMVA_month_4_day_8_hour_20.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_5_day_10_hour_5.raw,1,0,0,0
+WECC240_v03_Mod_NewMVA_month_5_day_15_hour_17.raw,0,0,1,0
+WECC240_v03_Mod_NewMVA_month_5_day_19_hour_5.raw,1,0,0,0
