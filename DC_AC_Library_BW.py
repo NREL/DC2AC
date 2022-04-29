@@ -724,7 +724,9 @@ def remove_geni_adjVj(busi, busj, psspy, pfdt, step5_tempcase, vseti):
     return vset, flag
 
 
-# The following function was prepared based on this reference: Whit. 2012. “Silencing PSSE Output,” Python for Power Systems. [Online] http://www.whit.com.au/blog/2012/03/silencing-psse-output/ 
+# The following function was prepared based on this reference: Whit. 2012. 'Silencing PSSE Output,' Python for Power Systems. [Online] http://www.whit.com.au/blog/2012/03/silencing-psse-output/
+
+
 @contextmanager
 def silence(file_object=None):
     """

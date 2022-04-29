@@ -185,7 +185,7 @@ def main():
                             psspy.fnsl([0, 0, 0, 1, 1, 0, 0, 0])
                             solved_flag = ifsolved(psspy, 1, 5)
                         if solved_flag == 0:
-                            with silence.silence():
+                            with silence():
                                 psspy.rawd_2(0, 1, [1, 1, 1, 0, 0, 0, 0], 0, step2_tempcase)  ## Possibility b
                         else:
                             print('Should not see this!!!\n')
